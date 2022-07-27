@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.spotifyplayv01.MainActivity
 import com.example.spotifyplayv01.R
@@ -13,35 +14,83 @@ import com.example.spotifyplayv01.SpotifyTokens
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-
 class LoginActivity : AppCompatActivity() {
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).edit().putString(SpotifyTokens.ACCESS_TOKEN, "").apply()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
         val loginBtn = findViewById<Button>(R.id.spotify_login_btn)
         val switchMainIntent = Intent(this, MainActivity::class.java).apply {  }
-        loginBtn.setOnClickListener {
-            if (!hasToken())
-                loginAuth()
-            if (hasToken())
+        GlobalScope.launch(Dispatchers.Main) {
+            val tokenStatus : Deferred<Boolean> = GlobalScope.async(Dispatchers.Default) {
+                hasToken()
+            }
+            if(!tokenStatus.await()) {
+                loginBtn.setOnClickListener {
+                    GlobalScope.launch(Dispatchers.Main) {
+                        val tokenStatus : Deferred<Boolean> = GlobalScope.async(Dispatchers.Default) {
+                            hasToken()
+                        }
+                        if(!tokenStatus.await()) {
+                            getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).edit()
+                                .putString(SpotifyTokens.ACCESS_TOKEN, null).apply()
+                            getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).edit()
+                                .putString(SpotifyTokens.ACCESS_EXPIRE, null).apply()
+                            loginAuth()
+                        }
+                        else {
+                            startActivity(switchMainIntent)
+                        }
+                    }
+                }
+                loginBtn.visibility = Button.VISIBLE
+            }
+            else {
                 startActivity(switchMainIntent)
+            }
         }
-        loginBtn.visibility = Button.VISIBLE
     }
 
-    private fun hasToken(): Boolean{
-        return !getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).getString(SpotifyTokens.ACCESS_TOKEN, "").equals("");
+
+    private suspend fun hasToken(): Boolean{
+        val token = getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).getString(SpotifyTokens.ACCESS_TOKEN, "")
+        Log.d("Status", "Please Wait...")
+        if (token == "") {
+            Log.d("Status", "No Access Token found")
+            return false
+        }
+        Log.d("Status", "Token Found: Checking if token is active")
+
+        val gScope = GlobalScope.async(Dispatchers.Default) {
+            val getUserProfileURL = "https://api.spotify.com/v1/me"
+            val url = URL(getUserProfileURL)
+            val httpsURLConnection = withContext(Dispatchers.IO) {url.openConnection() as HttpsURLConnection }
+            httpsURLConnection.requestMethod = "GET"
+            httpsURLConnection.setRequestProperty("Authorization", "Bearer $token")
+            httpsURLConnection.doInput = true
+            httpsURLConnection.doOutput = false
+
+            try{
+                val response = httpsURLConnection.errorStream.bufferedReader().use { it.readText() }
+                withContext(Dispatchers.Main) {
+                    val jsonObject = JSONObject(JSONObject(response).getString("error"))
+                    val responseCode = jsonObject.getInt("status")
+                    Toast.makeText(applicationContext, responseCode.toString(), Toast.LENGTH_LONG).show()
+                    responseCode <= 400
+                }
+            }catch (e: java.lang.NullPointerException){
+                true
+            }
+        }
+
+        return gScope.await();
     }
 
     private fun loginAuth() {
@@ -58,14 +107,19 @@ class LoginActivity : AppCompatActivity() {
         AuthorizationClient.openLoginInBrowser(this, request)
     }
 
-    private fun logout(){
-
+    fun logout(){
         val builder =
             AuthorizationRequest.Builder(SpotifyConstants.CLIENT_ID, AuthorizationResponse.Type.TOKEN, SpotifyConstants.REDIRECT_URI)
         builder.setScopes(arrayOf("streaming"))
         builder.setShowDialog(true)
         val request = builder.build()
         AuthorizationClient.openLoginInBrowser(this, request);
+        getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).edit()
+            .putString(SpotifyTokens.ACCESS_TOKEN, null).apply()
+        getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).edit()
+            .putString(SpotifyTokens.ACCESS_EXPIRE, null).apply()
+        val switchLoginIntent = Intent(this, LoginActivity::class.java).apply {  }
+        startActivity(switchLoginIntent)
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -91,7 +145,33 @@ class LoginActivity : AppCompatActivity() {
         sharedEditor.apply()
     }
 
-    private fun fetchSpotifyUserProfile(token: String?) {
+    /*private fun pingSpotify(){
+        val token = getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).getString(SpotifyTokens.ACCESS_TOKEN, "")
+        Log.d("Status: ", "Please Wait...")
+        if (token == "") {
+            Log.i("Status: ", "Something went wrong - No Access Token found")
+            return
+        }
+        val getUserProfileURL = "https://api.spotify.com/v1/me"
+        GlobalScope.launch(Dispatchers.Default) {
+            val url = URL(getUserProfileURL)
+            val httpsURLConnection = withContext(Dispatchers.IO) {url.openConnection() as HttpsURLConnection }
+            httpsURLConnection.requestMethod = "GET"
+            httpsURLConnection.setRequestProperty("Authorization", "Bearer $token")
+            httpsURLConnection.doInput = true
+            httpsURLConnection.doOutput = false
+            val response = httpsURLConnection.errorStream.bufferedReader()
+                .use { it.readText() }  // defaults to UTF-8
+
+            withContext(Dispatchers.Main){
+                val jsonObject = JSONObject(response)
+                val responseCode = jsonObject.getString("status")
+            }
+            Log.v("Error type", response)
+        }
+    }*/
+
+/*    private fun fetchSpotifyUserProfile(token: String?) {
         Log.d("Status: ", "Please Wait...")
         if (token == null) {
             Log.i("Status: ", "Something went wrong - No Access Token found")
@@ -121,5 +201,22 @@ class LoginActivity : AppCompatActivity() {
                 Log.d("Spotify AccessToken :", token)
             }
         }
-    }
+    }*/
 }
+
+/*ToDo
+    SPOTIFY RESPONSE STATUS CODES
+    200 - OK
+    201 - Created
+    202 - Accepted
+    204 - No Content
+    304 - Not Modified
+    400 - Bad Request
+    401 - Unauthorized
+    403 - Forbidden
+    404 - Not Found
+    429 - Too Many Requests
+    500 - Internal Server Error
+    502 - Bad Gateway
+    503 - Service Unavailable
+ */
