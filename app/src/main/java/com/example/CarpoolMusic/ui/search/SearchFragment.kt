@@ -1,4 +1,4 @@
-package com.example.CarpoolMusic.ui.notifications
+package com.example.CarpoolMusic.ui.search
 
 import android.app.Activity
 import android.content.Context
@@ -9,27 +9,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.SearchView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.CarpoolMusic.NotifRecyclerAdapter
 import com.example.CarpoolMusic.R
 import com.example.CarpoolMusic.SpotifyTokens
-import com.example.CarpoolMusic.databinding.FragmentNotificationsBinding
+import com.example.CarpoolMusic.databinding.FragmentSearchBinding
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.net.URL
 import java.net.URLEncoder
 import javax.net.ssl.HttpsURLConnection
 
-class NotificationsFragment : Fragment() {
+class SearchFragment : Fragment() {
 
-    private var _binding: FragmentNotificationsBinding? = null
+    private var _binding: FragmentSearchBinding? = null
     private var layoutManager: RecyclerView.LayoutManager? = null
-    private var adapter: RecyclerView.Adapter<NotifRecyclerAdapter.ViewHolder>? = null
+    private var adapter: RecyclerView.Adapter<SearchRecyclerAdapter.ViewHolder>? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -41,9 +41,9 @@ class NotificationsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val notificationsViewModel =
-            ViewModelProvider(this).get(NotificationsViewModel::class.java)
+            ViewModelProvider(this).get(SearchViewModel::class.java)
 
-        _binding = FragmentNotificationsBinding.inflate(inflater, container, false)
+        _binding = FragmentSearchBinding.inflate(inflater, container, false)
 
         val root: View = binding.root
         return root
@@ -53,6 +53,8 @@ class NotificationsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val searchView = view.findViewById<SearchView>(R.id.searchView)
         var notifFragment = view.findViewById<ConstraintLayout>(R.id.notifFragment)
+
+        //Searches for object when user presses enter
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 searchItems()
@@ -60,7 +62,6 @@ class NotificationsFragment : Fragment() {
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
-                //Log.d(TAG, "Query: " + newText);
                 return false
             }
         })
@@ -97,13 +98,12 @@ class NotificationsFragment : Fragment() {
                             val notifRecyclerView =
                                 view?.findViewById<RecyclerView>(R.id.searchRecycler)
                             notifRecyclerView?.layoutManager = layoutManager
-                            adapter = NotifRecyclerAdapter(
+                            adapter = SearchRecyclerAdapter(
                                 JSONObject(response).getJSONObject("tracks").getJSONArray("items")
                             )
                             notifRecyclerView?.adapter = adapter
-                            //val responseCode = jsonObject.getInt("status")
                         } else {
-
+                            Toast.makeText(requireContext(), "Error " + JSONObject(response).getJSONObject("error").getString("status"), Toast.LENGTH_LONG).show()
                         }
                     }
                 } catch (e: Exception) {

@@ -1,4 +1,4 @@
-package com.example.CarpoolMusic
+package com.example.CarpoolMusic.ui.search
 
 import android.view.LayoutInflater
 import android.view.View
@@ -9,16 +9,17 @@ import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.example.CarpoolMusic.R
 import org.json.JSONArray
 
 
-class NotifRecyclerAdapter (private var songList: JSONArray):RecyclerView.Adapter<NotifRecyclerAdapter.ViewHolder>() {
+class SearchRecyclerAdapter (private var songList: JSONArray):RecyclerView.Adapter<SearchRecyclerAdapter.ViewHolder>() {
     private val imageList = getImages()
     private val songTitles = getSongTitles()
     private val songArtists = getSongArtist()
     private val songUris = getSongUri()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotifRecyclerAdapter.ViewHolder{
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val v = LayoutInflater.from(parent.context).inflate(R.layout.search_card_layout, parent, false)
         return ViewHolder(v)
     }
@@ -27,7 +28,7 @@ class NotifRecyclerAdapter (private var songList: JSONArray):RecyclerView.Adapte
         return songList.length()
     }
 
-    override fun onBindViewHolder(holder: NotifRecyclerAdapter.ViewHolder, position: Int){
+    override fun onBindViewHolder(holder: ViewHolder, position: Int){
         holder.searchDetail.text = songArtists[position]
         holder.searchSongTitle.text = songTitles[position]
         holder.searchAddButton.tag = songUris[position]

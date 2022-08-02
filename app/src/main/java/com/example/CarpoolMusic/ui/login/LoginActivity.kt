@@ -11,6 +11,9 @@ import com.example.CarpoolMusic.MainActivity
 import com.example.CarpoolMusic.R
 import com.example.CarpoolMusic.SpotifyConstants
 import com.example.CarpoolMusic.SpotifyTokens
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
@@ -21,45 +24,55 @@ import javax.net.ssl.HttpsURLConnection
 
 class LoginActivity : AppCompatActivity() {
 
+    private lateinit var firebaseAuth: FirebaseAuth
+
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
         val loginBtn = findViewById<Button>(R.id.spotify_login_btn)
-        val switchMainIntent = Intent(this, MainActivity::class.java).apply {  }
+        loginBtn.visibility = Button.VISIBLE
         GlobalScope.launch(Dispatchers.Main) {
             val tokenStatus : Deferred<Boolean> = GlobalScope.async(Dispatchers.Default) {
-                hasToken()
+                hasSpotifyToken()
             }
             if(!tokenStatus.await()) {
                 loginBtn.setOnClickListener {
                     GlobalScope.launch(Dispatchers.Main) {
                         val tokenStatus : Deferred<Boolean> = GlobalScope.async(Dispatchers.Default) {
-                            hasToken()
+                            hasSpotifyToken()
                         }
                         if(!tokenStatus.await()) {
                             getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).edit()
                                 .putString(SpotifyTokens.ACCESS_TOKEN, null).apply()
                             getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).edit()
                                 .putString(SpotifyTokens.ACCESS_EXPIRE, null).apply()
-                            loginAuth()
+                            spotifyLoginAuth()
                         }
                         else {
-                            startActivity(switchMainIntent)
+                            firebaseLoginAuth()
                         }
                     }
                 }
-                loginBtn.visibility = Button.VISIBLE
             }
             else {
-                startActivity(switchMainIntent)
+                firebaseLoginAuth()
             }
         }
     }
 
+    private fun firebaseLoginAuth() {
+        //Anonymous Auth
+        val switchMainIntent = Intent(this, MainActivity::class.java).apply {  }
+        firebaseAuth = Firebase.auth
+        firebaseAuth.signInAnonymously()
+            .addOnSuccessListener { startActivity(switchMainIntent) }
+            .addOnFailureListener { Log.d("Firebase Failure", "anonymousAuth: $it")
+                Toast.makeText(applicationContext, "Problem Connecting to Firebase", Toast.LENGTH_LONG).show()}
+    }
 
-    private suspend fun hasToken(): Boolean{
+    private suspend fun hasSpotifyToken(): Boolean{
         val token = getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).getString(SpotifyTokens.ACCESS_TOKEN, "")
         Log.d("Status", "Please Wait...")
         if (token == "") {
@@ -82,7 +95,8 @@ class LoginActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     val jsonObject = JSONObject(JSONObject(response).getString("error"))
                     val responseCode = jsonObject.getInt("status")
-                    Toast.makeText(applicationContext, responseCode.toString(), Toast.LENGTH_LONG).show()
+                    Toast.makeText(applicationContext,
+                        "$responseCode error: Please try again!", Toast.LENGTH_LONG).show()
                     responseCode <= 400
                 }
             }catch (e: java.lang.NullPointerException){
@@ -93,7 +107,7 @@ class LoginActivity : AppCompatActivity() {
         return gScope.await();
     }
 
-    private fun loginAuth() {
+    private fun spotifyLoginAuth() {
         val builder =
             AuthorizationRequest.Builder(
                 SpotifyConstants.CLIENT_ID,
@@ -107,7 +121,7 @@ class LoginActivity : AppCompatActivity() {
         AuthorizationClient.openLoginInBrowser(this, request)
     }
 
-    fun logout(){
+    fun spotifyLogout(){
         val builder =
             AuthorizationRequest.Builder(SpotifyConstants.CLIENT_ID, AuthorizationResponse.Type.TOKEN, SpotifyConstants.REDIRECT_URI)
         builder.setScopes(arrayOf("streaming"))
@@ -129,7 +143,8 @@ class LoginActivity : AppCompatActivity() {
             val response = AuthorizationResponse.fromUri(uri)
             when (response.type) {
                 AuthorizationResponse.Type.TOKEN -> {
-                    saveToken(response)
+                    saveSpotifyToken(response)
+                    firebaseLoginAuth()
                 }
                 AuthorizationResponse.Type.ERROR -> {Log.e("Error", response.error)}
                 else -> {}
@@ -137,13 +152,20 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveToken(response: AuthorizationResponse) {
+    private fun saveSpotifyToken(response: AuthorizationResponse) {
         val sharedPreferences = getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE)
         val sharedEditor = sharedPreferences.edit()
         sharedEditor.putString(SpotifyTokens.ACCESS_TOKEN, response.accessToken)
         sharedEditor.putInt(SpotifyTokens.ACCESS_EXPIRE, response.expiresIn)
         sharedEditor.apply()
     }
+
+//    private fun firebaseLoginAuth(){
+//        //Anonymous Auth
+//        firebaseAuth.signInAnonymously()
+//            .addOnSuccessListener {  }
+//            .addOnFailureListener { Log.d("Firebase Failure", "anonymousAuth: $it") }
+//    }
 
     /*private fun pingSpotify(){
         val token = getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).getString(SpotifyTokens.ACCESS_TOKEN, "")
@@ -219,4 +241,4 @@ class LoginActivity : AppCompatActivity() {
     500 - Internal Server Error
     502 - Bad Gateway
     503 - Service Unavailable
- */
+*/
