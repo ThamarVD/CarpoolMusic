@@ -3,6 +3,21 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout-v28/fragment_join.xml" value="0.36827195467422097" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout-w1240dp/activity_login.xml" value="0.24866131191432397" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout-w936dp/activity_login.xml" value="0.290234375" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/activity_login.xml" value="0.38697916666666665" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/fragment_dashboard.xml" value="0.2916666666666667" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/fragment_home.xml" value="0.38697916666666665" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/fragment_join.xml" value="0.38697916666666665" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/fragment_notifications.xml" value="0.38697916666666665" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/fragment_queue.xml" value="0.38697916666666665" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/friend_card_layout.xml" value="0.38697916666666665" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/queue_card_layout.xml" value="0.38697916666666665" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/search_card_layout.xml" value="0.38697916666666665" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/layout/settings_activity.xml" value="0.38697916666666665" />
+        <entry key="..\:/AndroidProjects/CarpoolMusic/app/src/main/res/menu/bottom_nav_menu.xml" value="0.38697916666666665" />
         <entry key="..\:/AndroidProjects/SpotifyPlayV01/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.213" />
         <entry key="..\:/AndroidProjects/SpotifyPlayV01/app/src/main/res/layout-w1240dp/activity_login.xml" value="0.2359437751004016" />
         <entry key="..\:/AndroidProjects/SpotifyPlayV01/app/src/main/res/layout-w936dp/activity_login.xml" value="0.275390625" />

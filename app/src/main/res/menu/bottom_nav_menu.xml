@@ -3,7 +3,7 @@
 
     <item
         android:id="@+id/navigation_home"
-        android:icon="@android:drawable/stat_sys_headset"
+        android:icon="@drawable/ic_headphonecar"
         android:title="@string/join" />
 
     <item
