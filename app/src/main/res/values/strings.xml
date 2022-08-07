@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Carpooling Music</string>
+    <string name="app_name">Carpool Music</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
@@ -38,4 +38,5 @@
     <string name="album_cover">Album Cover</string>
     <string name="create_or_join_room">Create or Join Room</string>
     <string name="friends_joined">Friends Joined</string>
+    <string name="home">Home</string>
 </resources>

@@ -13,10 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CarpoolMusic"
         tools:targetApi="31">
-        <activity
-            android:name="com.example.CarpoolMusic.SettingsActivity"
-            android:exported="false"
-            android:label="@string/title_activity_settings" />
+
         <activity
             android:name="com.example.CarpoolMusic.ui.login.LoginActivity"
             android:exported="true"

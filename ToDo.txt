@@ -1,5 +1,4 @@
 If Spotify Api Fails a certain way, log out
-If Firebase Api fails, log out
 Add and remove songs
 Add and remove users
 Greyed out button for non prem users

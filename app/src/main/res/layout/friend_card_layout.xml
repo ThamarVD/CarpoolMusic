@@ -17,17 +17,18 @@
         android:layout_height="wrap_content"
         android:padding="2dp">
 
-        <ImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:id="@+id/friend_profile_picture"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/friend_Username"
+            android:textColor="#ebebeb"
             app:layout_constraintStart_toEndOf="@id/friend_profile_picture"
             app:layout_constraintTop_toTopOf="@id/friend_profile_picture"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -6,11 +6,20 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.CarpoolMusic.R
+import com.example.CarpoolMusic.SpotifyTokens
+import com.example.CarpoolMusic.data.model.Song
+import com.example.CarpoolMusic.data.model.User
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import org.json.JSONArray
+import com.example.CarpoolMusic.FirebaseReader
 
 
 class SearchRecyclerAdapter (private var songList: JSONArray):RecyclerView.Adapter<SearchRecyclerAdapter.ViewHolder>() {
@@ -18,6 +27,7 @@ class SearchRecyclerAdapter (private var songList: JSONArray):RecyclerView.Adapt
     private val songTitles = getSongTitles()
     private val songArtists = getSongArtist()
     private val songUris = getSongUri()
+    private val database = Firebase.firestore
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val v = LayoutInflater.from(parent.context).inflate(R.layout.search_card_layout, parent, false)
@@ -31,7 +41,7 @@ class SearchRecyclerAdapter (private var songList: JSONArray):RecyclerView.Adapt
     override fun onBindViewHolder(holder: ViewHolder, position: Int){
         holder.searchDetail.text = songArtists[position]
         holder.searchSongTitle.text = songTitles[position]
-        holder.searchAddButton.tag = songUris[position]
+        holder.searchAddButton.setOnClickListener {addSongToQueue(holder, Song(songTitles[position], songArtists[position], imageList[position], songUris[position]))}
         holder.searchImage.load(imageList[position].toUri().buildUpon().scheme("https").build())
     }
 
@@ -85,4 +95,25 @@ class SearchRecyclerAdapter (private var songList: JSONArray):RecyclerView.Adapt
         }
         return tempSongUriList
     }
+
+    private fun addSongToQueue(holder: ViewHolder, song: Song){
+        val context = holder.searchAddButton.context
+        val roomID = context.getSharedPreferences(SpotifyTokens.SHARED_PREFS, AppCompatActivity.MODE_PRIVATE).getString(SpotifyTokens.ROOM_CODE, null).toString()
+        if(!(roomID == "null" || roomID.isNullOrEmpty())){
+            database.collection("rooms").document(roomID).get().addOnSuccessListener{ result ->
+                val songs = FirebaseReader().resultsToSongList(result)
+                songs.add(song)
+                database.collection("rooms").document(roomID).update("queue", songs).addOnFailureListener { e ->
+                    Toast.makeText(context, "Error adding song to queue", Toast.LENGTH_SHORT).show()
+                }
+            }.addOnFailureListener {
+                Toast.makeText(context, "Please Try Again", Toast.LENGTH_SHORT).show()
+            }
+        }
+        else{
+            Toast.makeText(context, "Please join a room!", Toast.LENGTH_LONG).show()
+        }
+    }
+
+
 }

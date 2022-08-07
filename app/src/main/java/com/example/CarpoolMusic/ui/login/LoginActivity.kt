@@ -12,15 +12,16 @@ import com.example.CarpoolMusic.R
 import com.example.CarpoolMusic.SpotifyConstants
 import com.example.CarpoolMusic.SpotifyTokens
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import com.spotify.sdk.android.auth.AccountsQueryParameters.CLIENT_ID
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
+import com.spotify.sdk.android.auth.LoginActivity.REQUEST_CODE
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
+
 
 class LoginActivity : AppCompatActivity() {
 
@@ -30,7 +31,7 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-
+        getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).edit().putString(SpotifyTokens.ROOM_CODE, null).apply()
         val loginBtn = findViewById<Button>(R.id.spotify_login_btn)
         loginBtn.visibility = Button.VISIBLE
         GlobalScope.launch(Dispatchers.Main) {
@@ -51,25 +52,22 @@ class LoginActivity : AppCompatActivity() {
                             spotifyLoginAuth()
                         }
                         else {
-                            firebaseLoginAuth()
+                            switchToMain()
                         }
                     }
                 }
             }
             else {
-                firebaseLoginAuth()
+                switchToMain()
             }
         }
     }
 
-    private fun firebaseLoginAuth() {
-        //Anonymous Auth
+    //TODO: Remove function from all places where it is used
+    private fun switchToMain() {
         val switchMainIntent = Intent(this, MainActivity::class.java).apply {  }
-        firebaseAuth = Firebase.auth
-        firebaseAuth.signInAnonymously()
-            .addOnSuccessListener { startActivity(switchMainIntent) }
-            .addOnFailureListener { Log.d("Firebase Failure", "anonymousAuth: $it")
-                Toast.makeText(applicationContext, "Problem Connecting to Firebase", Toast.LENGTH_LONG).show()}
+        startActivity(switchMainIntent)
+        finish()
     }
 
     private suspend fun hasSpotifyToken(): Boolean{
@@ -89,7 +87,6 @@ class LoginActivity : AppCompatActivity() {
             httpsURLConnection.setRequestProperty("Authorization", "Bearer $token")
             httpsURLConnection.doInput = true
             httpsURLConnection.doOutput = false
-
             try{
                 val response = httpsURLConnection.errorStream.bufferedReader().use { it.readText() }
                 withContext(Dispatchers.Main) {
@@ -104,8 +101,13 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        return gScope.await();
+        return gScope.await()
     }
+
+    /*ToDo
+        If action fails, do not continue to login.
+     */
+
 
     private fun spotifyLoginAuth() {
         val builder =
@@ -115,7 +117,7 @@ class LoginActivity : AppCompatActivity() {
                 SpotifyConstants.REDIRECT_URI
             )
 
-        builder.setScopes(arrayOf("user-read-private user-modify-playback-state"))
+        builder.setScopes(arrayOf("user-read-private user-read-playback-state user-modify-playback-state"))
         val request = builder.build()
 
         AuthorizationClient.openLoginInBrowser(this, request)
@@ -127,13 +129,14 @@ class LoginActivity : AppCompatActivity() {
         builder.setScopes(arrayOf("streaming"))
         builder.setShowDialog(true)
         val request = builder.build()
-        AuthorizationClient.openLoginInBrowser(this, request);
+        AuthorizationClient.openLoginInBrowser(this, request)
         getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).edit()
             .putString(SpotifyTokens.ACCESS_TOKEN, null).apply()
         getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).edit()
             .putString(SpotifyTokens.ACCESS_EXPIRE, null).apply()
         val switchLoginIntent = Intent(this, LoginActivity::class.java).apply {  }
         startActivity(switchLoginIntent)
+        finish()
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -144,7 +147,7 @@ class LoginActivity : AppCompatActivity() {
             when (response.type) {
                 AuthorizationResponse.Type.TOKEN -> {
                     saveSpotifyToken(response)
-                    firebaseLoginAuth()
+                    switchToMain()
                 }
                 AuthorizationResponse.Type.ERROR -> {Log.e("Error", response.error)}
                 else -> {}
@@ -160,70 +163,8 @@ class LoginActivity : AppCompatActivity() {
         sharedEditor.apply()
     }
 
-//    private fun firebaseLoginAuth(){
-//        //Anonymous Auth
-//        firebaseAuth.signInAnonymously()
-//            .addOnSuccessListener {  }
-//            .addOnFailureListener { Log.d("Firebase Failure", "anonymousAuth: $it") }
-//    }
-
-    /*private fun pingSpotify(){
-        val token = getSharedPreferences(SpotifyTokens.SHARED_PREFS, MODE_PRIVATE).getString(SpotifyTokens.ACCESS_TOKEN, "")
-        Log.d("Status: ", "Please Wait...")
-        if (token == "") {
-            Log.i("Status: ", "Something went wrong - No Access Token found")
-            return
-        }
-        val getUserProfileURL = "https://api.spotify.com/v1/me"
-        GlobalScope.launch(Dispatchers.Default) {
-            val url = URL(getUserProfileURL)
-            val httpsURLConnection = withContext(Dispatchers.IO) {url.openConnection() as HttpsURLConnection }
-            httpsURLConnection.requestMethod = "GET"
-            httpsURLConnection.setRequestProperty("Authorization", "Bearer $token")
-            httpsURLConnection.doInput = true
-            httpsURLConnection.doOutput = false
-            val response = httpsURLConnection.errorStream.bufferedReader()
-                .use { it.readText() }  // defaults to UTF-8
-
-            withContext(Dispatchers.Main){
-                val jsonObject = JSONObject(response)
-                val responseCode = jsonObject.getString("status")
-            }
-            Log.v("Error type", response)
-        }
-    }*/
-
-/*    private fun fetchSpotifyUserProfile(token: String?) {
-        Log.d("Status: ", "Please Wait...")
-        if (token == null) {
-            Log.i("Status: ", "Something went wrong - No Access Token found")
-            return
-        }
-        val getUserProfileURL = "https://api.spotify.com/v1/me"
-        GlobalScope.launch(Dispatchers.Default) {
-            val url = URL(getUserProfileURL)
-            val httpsURLConnection = withContext(Dispatchers.IO) {url.openConnection() as HttpsURLConnection }
-            httpsURLConnection.requestMethod = "GET"
-            httpsURLConnection.setRequestProperty("Authorization", "Bearer $token")
-            httpsURLConnection.doInput = true
-            httpsURLConnection.doOutput = false
-            val response = httpsURLConnection.inputStream.bufferedReader()
-                .use { it.readText() }  // defaults to UTF-8
-            withContext(Dispatchers.Main) {
-                val jsonObject = JSONObject(response)
-                // Spotify Id
-                val spotifyId = jsonObject.getString("id")
-                Log.d("Spotify Id :", spotifyId)
-                // Spotify Display Name
-                val spotifyDisplayName = jsonObject.getString("display_name")
-                Log.d("Spotify Display Name :", spotifyDisplayName)
-                // Spotify Email
-                val spotifyEmail = jsonObject.getString("email")
-                Log.d("Spotify Email :", spotifyEmail)
-                Log.d("Spotify AccessToken :", token)
-            }
-        }
-    }*/
+    override fun onBackPressed() {
+    }
 }
 
 /*ToDo

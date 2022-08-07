@@ -9,10 +9,14 @@ import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.CarpoolMusic.R
+import com.example.CarpoolMusic.data.model.User
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
-class FriendRecyclerAdapter():RecyclerView.Adapter<FriendRecyclerAdapter.ViewHolder>(){
+class FriendRecyclerAdapter(private val result: ArrayList<User>) :RecyclerView.Adapter<FriendRecyclerAdapter.ViewHolder>(){
     private val profilePicList = getProfilePics()
     private val usernameList = getUsernames()
+    val database = Firebase.firestore
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder{
         val v = LayoutInflater.from(parent.context).inflate(R.layout.friend_card_layout, parent, false)
@@ -38,10 +42,18 @@ class FriendRecyclerAdapter():RecyclerView.Adapter<FriendRecyclerAdapter.ViewHol
     }
 
     private fun getProfilePics(): ArrayList<String> {
-        return ArrayList<String>()
+        val thisProfilePicList = ArrayList<String>()
+        for(user in result){
+            thisProfilePicList.add(user.profilePic)
+        }
+        return  thisProfilePicList
     }
 
     private fun getUsernames(): ArrayList<String> {
-        return ArrayList<String>()
+        val thisUsernameList = ArrayList<String>()
+        for(user in result){
+            thisUsernameList.add(user.userName + if(user.host)" (Host)" else "")
+        }
+        return thisUsernameList
     }
 }

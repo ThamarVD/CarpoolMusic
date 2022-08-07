@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+/app/google-services.json
+/app/src/main/java/com/example/CarpoolMusic/AuthConstants.kt
+/app/spotify-app-remote-release-0.7.2.aar
