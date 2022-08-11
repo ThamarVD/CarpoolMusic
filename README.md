@@ -57,7 +57,7 @@ A way you can you and your friends can listen to music together on a long drive
 
 - WAY in the future
 
-    - Make App for IOS
+    - Make App for iOS
 ## Support
 
 This app is still in pre-production so things might not work as intended
