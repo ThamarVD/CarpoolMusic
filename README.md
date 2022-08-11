@@ -50,6 +50,10 @@ A way you can you and your friends can listen to music together on a long drive
 - UI Element to see currently playing song
 
 - Ability to remove/reorder songs in queue
+
+-WAY in the future
+
+    - Make App for IOS
 ## Support
 
 This app is still in pre-production so things might not work as intended
