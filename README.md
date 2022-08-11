@@ -51,6 +51,8 @@ A way you can you and your friends can listen to music together on a long drive
 
 - Ability to remove/reorder songs in queue
 
+- Add Privacy Policy
+
 - WAY in the future
 
     - Make App for IOS
