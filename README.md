@@ -39,6 +39,8 @@ A way you can you and your friends can listen to music together on a long drive
 
 - Automatic Spotify Token Refresh
 
+- Ability to Add A Playlist/Album
+
 - Have app run in background for host
 
 - Better data management for Firestore
