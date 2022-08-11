@@ -34,6 +34,8 @@ A way you can you and your friends can listen to music together on a long drive
 - Fix Login Page
 
     - Login after getting token
+    
+- Logout/Leave Room Button
 
 - Ability for host to kick users
 
