@@ -35,6 +35,8 @@ A way you can you and your friends can listen to music together on a long drive
 
     - Login after getting token
     
+    - Optimize Spotify API Calls
+    
 - Logout/Leave Room Button
 
 - Ability for host to kick users
