@@ -55,6 +55,10 @@ A way you can you and your friends can listen to music together on a long drive
 
 - Add Privacy Policy
 
+- Release on Google Play Store
+
+    - Possibly Add Advertisements on Login Page
+
 - WAY in the future
 
     - Make App for iOS
