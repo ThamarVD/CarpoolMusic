@@ -39,6 +39,8 @@ A way you can you and your friends can listen to music together on a long drive
     
 - Logout/Leave Room Button
 
+- Add Skip Button
+
 - Ability for host to kick users
 
 - Automatic Spotify Token Refresh
